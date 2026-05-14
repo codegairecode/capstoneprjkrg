@@ -1,0 +1,42 @@
+# 3. Create the Entra ID Group
+resource "azuread_group" "devops_team" {
+  display_name     = "AWS-DevOpsEngineers"
+  security_enabled = true
+  description      = "Group for EV Fleet project DevOps engineers"
+}
+
+# 4. Create the AWS SAML Provider (The Trust Handshake)
+resource "aws_iam_saml_provider" "entra_id_provider" {
+  name                   = "AzureEntraID-SSO"
+  saml_metadata_document = file("${path.module}/entra-metadata.xml") 
+}
+
+# 5. Create the Trust Policy (Who can use the role?)
+data "aws_iam_policy_document" "saml_trust_policy" {
+  statement {
+    actions = ["sts:AssumeRoleWithSAML"]
+
+    principals {
+      type        = "Federated"
+      identifiers = [aws_iam_saml_provider.entra_id_provider.arn] 
+    }
+
+    condition {
+      test     = "StringEquals"
+      variable = "SAML:aud"
+      values   = ["https://signin.aws.amazon.com/saml"]
+    }
+  }
+}
+
+# 6. Create the IAM Role for Azure Users
+resource "aws_iam_role" "devops_engineer_role" {
+  name               = "DevOpsEngineer-Role"
+  assume_role_policy = data.aws_iam_policy_document.saml_trust_policy.json
+}
+
+# 7. Grant the Role Admin Access (so you can build the rest of your project)
+resource "aws_iam_role_policy_attachment" "devops_admin_access" {
+  role       = aws_iam_role.devops_engineer_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess" 
+}

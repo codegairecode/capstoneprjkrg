@@ -1,0 +1,14 @@
+# Ignore the massive Terraform binaries
+.terraform/
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.backup
+*.exe
+
+# Ignore the AWS CLI installer zip
+awscliv2.zip
+aws/
+
+# Ignore Windows/Mac hidden files
+.DS_Store
+Thumbs.db
