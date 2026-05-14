@@ -31,7 +31,7 @@ jobs:
       - name: Upload the new index.html to the $web folder
         run: |
           az storage blob upload-batch \
-            --account-name evfleetdashui2026 \
+            --account-name evfleetkrgkiwiev \
             --destination '$web' \
             --source . \
             --pattern "index.html" \
