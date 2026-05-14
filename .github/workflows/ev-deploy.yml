@@ -1,0 +1,34 @@
+name: EV Fleet Deployment
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch: # This creates a manual "Run" button!
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Upload index.html to Azure
+        run: |
+          az storage blob upload-batch \
+            --account-name evfleetkrgkiwiev \
+            --destination '$web' \
+            --source . \
+            --pattern "index.html" \
+            --overwrite true \
+            --auth-mode login
